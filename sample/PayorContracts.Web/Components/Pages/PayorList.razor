@@ -1,0 +1,162 @@
+@page "/"
+@page "/Pages/PayorList"
+@using PayorContracts.Web.Models
+
+<PageTitle>Payor Information</PageTitle>
+
+@* Page header "Payor Information Management" is rendered by MainLayout (MudAppBar, styled like the Reference page-header). *@
+
+<!-- Filter Panel -->
+<div class="filter-panel payor-filter-panel">
+    <div class="filter-row">
+        <MudTextField T="string" @bind-Value="_nameFilter" Label="Payor Name:" Placeholder="Search by name..."
+                      Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                      OnKeyDown="OnFilterKeyDownAsync" Class="payor-filter-field" />
+
+        <MudTextField T="string" @bind-Value="_codeFilter" Label="Code:" Placeholder="Search by code..."
+                      Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                      OnKeyDown="OnFilterKeyDownAsync" Class="payor-filter-field" />
+
+        <MudSelect T="PayorStatusFilter" @bind-Value="_statusFilter" Label="Status:"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="payor-filter-status">
+            @foreach (var option in Enum.GetValues<PayorStatusFilter>())
+            {
+                <MudSelectItem T="PayorStatusFilter" Value="option">@StatusFilterText(option)</MudSelectItem>
+            }
+        </MudSelect>
+
+        <button id="btnSearch" type="button" class="btn-search" @onclick="SearchAsync">Search</button>
+        <button id="btnClear" type="button" class="btn-clear" @onclick="ClearAsync">Clear</button>
+    </div>
+</div>
+
+<!-- Payor grid (server paging and sorting) -->
+<div class="grid-container">
+    <MudDataGrid @ref="_grid" T="PayorGridRow" ServerData="LoadServerDataAsync" RowsPerPage="DefaultPageSize"
+                 SortMode="SortMode.Single" Filterable="false" Hover="true" Striped="false" Dense="true"
+                 RowClassFunc="RowClass" ShowColumnOptions="false" Class="@GridClass">
+        <ColGroup>
+            <col style="width: 50px;" />
+            <col style="width: 200px;" />
+            <col style="width: 100px;" />
+            <col style="width: 120px;" />
+            <col style="width: 130px;" />
+            <col style="width: 100px;" />
+        </ColGroup>
+        <Columns>
+            <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" InitialDirection="SortDirection.Ascending"
+                            HeaderStyle="width: 50px; text-align: center;" CellStyle="text-align: center;" />
+
+            <PropertyColumn Property="x => x.Name" Title="Payor Name" Sortable="true" HeaderStyle="width: 200px;">
+                <CellTemplate>
+                    @if (IsEditing(context.Item, EditField.Name))
+                    {
+                        <input @ref="_editorRef" type="text" class="edit-input" aria-label="Payor Name"
+                               value="@_draft" @oninput="OnDraftInput"
+                               @onkeydown="e => OnTextEditorKeyDown(context.Item, e)"
+                               @onblur="() => OnTextEditorBlur(context.Item)" />
+                    }
+                    else
+                    {
+                        <span class="cell-display" role="button" tabindex="0" aria-label="Edit payor name"
+                              @onclick="() => BeginEdit(context.Item, EditField.Name)"
+                              @onkeydown="e => OnDisplayKeyDown(context.Item, EditField.Name, e)">@context.Item.Name</span>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Code" Title="Code" Sortable="true" HeaderStyle="width: 100px;">
+                <CellTemplate>
+                    @if (IsEditing(context.Item, EditField.Code))
+                    {
+                        <input @ref="_editorRef" type="text" class="edit-input" aria-label="Code"
+                               value="@_draft" @oninput="OnDraftInput"
+                               @onkeydown="e => OnTextEditorKeyDown(context.Item, e)"
+                               @onblur="() => OnTextEditorBlur(context.Item)" />
+                    }
+                    else
+                    {
+                        <span class="cell-display" role="button" tabindex="0" aria-label="Edit code"
+                              @onclick="() => BeginEdit(context.Item, EditField.Code)"
+                              @onkeydown="e => OnDisplayKeyDown(context.Item, EditField.Code, e)">@context.Item.Code</span>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Category" Title="Category" Sortable="true" HeaderStyle="width: 120px;">
+                <CellTemplate>
+                    @if (IsEditing(context.Item, EditField.Category))
+                    {
+                        <select @ref="_editorRef" class="edit-select" aria-label="Category"
+                                @onchange="e => OnCategoryChanged(context.Item, e)"
+                                @onblur="() => OnCategoryBlur(context.Item)">
+                            @foreach (var category in Categories)
+                            {
+                                <option value="@category" selected="@(category == _draft)">@category</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <span class="cell-display" role="button" tabindex="0" aria-label="Edit category"
+                              @onclick="() => BeginEdit(context.Item, EditField.Category)"
+                              @onkeydown="e => OnDisplayKeyDown(context.Item, EditField.Category, e)">@DisplayCategory(context.Item.Category)</span>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.EffectiveDate" Title="Effective Date" Format="MM/dd/yyyy" Sortable="true"
+                            HeaderStyle="width: 130px;">
+                <CellTemplate>
+                    @if (IsEditing(context.Item, EditField.EffectiveDate))
+                    {
+                        <MudDatePicker @ref="_datePicker" Date="context.Item.EffectiveDate"
+                                       DateChanged="d => OnDateChanged(context.Item, d)"
+                                       PickerClosed="OnDatePickerClosed"
+                                       Editable="true" AutoClose="true" DateFormat="@DateFormat" Culture="DateCulture"
+                                       Placeholder="MM/DD/YYYY" Variant="Variant.Text" Margin="Margin.Dense"
+                                       aria-label="Effective Date" Class="edit-date" />
+                    }
+                    else
+                    {
+                        <span class="cell-display" role="button" tabindex="0" aria-label="Edit effective date"
+                              @onclick="() => BeginEdit(context.Item, EditField.EffectiveDate)"
+                              @onkeydown="e => OnDisplayKeyDown(context.Item, EditField.EffectiveDate, e)">@DisplayDate(context.Item.EffectiveDate)</span>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.IsActive" Title="Status" Sortable="true" HeaderStyle="width: 100px;">
+                <CellTemplate>
+                    <label class="status-cell">
+                        <input type="checkbox" class="edit-status" checked="@context.Item.IsActive" disabled="@IsStatusDisabled"
+                               aria-label="Active" @onchange="e => OnStatusChanged(context.Item, e)" />
+                        <span class="@StatusClass(context.Item)">@StatusText(context.Item)</span>
+                    </label>
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="PayorGridRow" PageSizeOptions="PageSizeOptions" InfoFormat="@PagerInfoFormat" />
+            @if (_isEmpty)
+            {
+                @* MudDataGridPager hard-codes "0-0 of 0" for an empty grid; Reference jqGrid shows emptyrecords text *@
+                <div class="mud-table-pagination-caption pager-empty-info" role="status">@EmptyRecordsText</div>
+            }
+            <div class="pager-goto">
+                <span>Page</span>
+                <input id="pagerPageInput" type="text" inputmode="numeric" class="pager-page-input" aria-label="Page No."
+                       value="@CurrentPageNumber" @oninput="OnPageDraftInput" @onchange="OnPageInputChangedAsync"
+                       @onkeydown="OnPageInputKeyDownAsync" />
+                <span>of @TotalPages</span>
+            </div>
+        </PagerContent>
+    </MudDataGrid>
+</div>
+
+<!-- Batch Save / Cancel Action Bar -->
+<div class="action-bar">
+    <span class="change-count" id="changeCount" role="status">@ChangeCountText</span>
+    <button type="button" class="btn-cancel-all" id="btnCancelAll" disabled="@IsCancelDisabled" @onclick="CancelAllAsync">Cancel</button>
+    <button type="button" class="btn-save-all" id="btnSaveAll" disabled="@IsSaveDisabled" @onclick="SaveAllAsync">@SaveButtonText</button>
+</div>

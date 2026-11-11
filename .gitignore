@@ -1,0 +1,45 @@
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+
+# Test / runtime output
+auth-state.json
+last-build-output.txt
+last-test-output.txt
+lifecycle-result.json
+doctor-result.json
+.kiro/test-project/logs/
+test-run-summary.txt
+**/snapshots/
+**/visual-compare/
+**/diagnostics/
+**/reports/*.pdf
+**/reports/*.docx
+
+# IDE
+.vs/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Per-page testing artifacts generated at runtime (keep status.json schema/example, not runs)
+.kiro/app-testing/
+
+# Local tool output
+push-output*.txt
+# Local security scanner working directories
+.ash/
+.holmes/
+
+# Agent working files, editor temp files, test output
+.agents/
+*.TMP
+*.diff
+TestResults/
+**/screenshots/

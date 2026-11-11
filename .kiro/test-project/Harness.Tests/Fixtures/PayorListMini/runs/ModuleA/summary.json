@@ -1,0 +1,35 @@
+{
+  "module": "A",
+  "referenceStatus": "PASS",
+  "targetStatus": "FAIL",
+  "openFindings": 1,
+  "actionableCssDiffs": 1,
+  "cssDiffsTotal": 2,
+  "notTested": 1,
+  "findings": [
+    {
+      "id": "A-Step1-pager.range",
+      "kind": "app",
+      "step": "Step1",
+      "field": "pager.range",
+      "reference": "View 1 - 10 of 15",
+      "target": "1-10 of 15",
+      "expected": "View 1 - 10 of 15",
+      "severity": "MEDIUM",
+      "actionable": true,
+      "sources": ["assertion", "capture"],
+      "missingAssertions": [],
+      "missingCaptures": [],
+      "details": [
+        "Target EQUALS failed: pager.range: \"1-10 of 15\" (expected \"View 1 - 10 of 15\")",
+        "Captured S0/pager.range: Reference \"View 1 - 10 of 15\" vs Target \"1-10 of 15\""
+      ]
+    }
+  ],
+  "cssDiffs": [
+    { "element": "ClearButton", "state": "page_load", "property": "color", "reference": "rgb(0, 0, 0)", "target": "rgb(255, 255, 255)", "severity": "MEDIUM", "accepted": false, "acceptedReason": null, "actionable": true },
+    { "element": "Grid column header", "state": "page_load", "property": "font-weight", "reference": "600", "target": "500", "severity": "LOW", "accepted": true, "acceptedReason": "Material header weight 500 vs legacy 600, agreed acceptable", "actionable": false }
+  ],
+  "unmatched": [],
+  "generatedAt": "2026-10-27T10:09:44.0000000+05:30"
+}

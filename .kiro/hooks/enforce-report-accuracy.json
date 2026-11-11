@@ -1,0 +1,13 @@
+{
+  "name": "Enforce Report Accuracy",
+  "version": "1.0.0",
+  "description": "After test execution, enforces mandatory report standards: no false positives, exact data evidence.",
+  "when": {
+    "type": "postToolUse",
+    "toolTypes": ["shell"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "If 'dotnet test' just completed, BEFORE presenting results, self-audit:\n\n1. For every VERIFIED behavior:\n   - Did actual EXACTLY match expected?\n   - Do you have specific data values (not just 'element found')?\n   - If actual ≠ expected → it's a FINDING, not VERIFIED\n\n2. For CSS/visual tests:\n   - Did you capture computed style values?\n   - Do they match reference?\n\n3. NEVER explain away a failure. expected ≠ actual → FINDING.\n\n4. Present report in mandatory format with all required sections.\n\nIf this was NOT a test execution: ignore."
+  }
+}

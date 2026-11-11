@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 2,
+  "page": "PayorList",
+  "lifecycle": "testing",
+  "state": "fixing",
+  "updatedAt": "2026-10-26T14:22:10.1234567+00:00",
+  "session": { "id": "run-20261026-140501", "startedAt": "2026-10-26T14:05:01.0000000+00:00", "planRevision": 1, "lastExitCode": 0 },
+  "paths": { "reference": "sample/PayorContracts.Legacy", "target": "sample/PayorContracts.Web" },
+  "plan": {
+    "signedOff": true,
+    "signedOffAt": "2026-10-26T14:03:40.0000000+00:00",
+    "signedOffRevision": 1,
+    "signedOffFingerprint": "3f1c0d9a5b7e2c4f8a6d1e0b9c7a5f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a",
+    "fingerprint": "3f1c0d9a5b7e2c4f8a6d1e0b9c7a5f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a",
+    "fingerprintRevision": 1,
+    "response": "confirm",
+    "planFile": "state-map/plan.json",
+    "modules": ["A", "B", "C", "D"]
+  },
+  "gate": { "pending": false, "name": null, "since": null, "question": null, "reportPath": null, "lastResponse": "confirm" },
+  "currentRun": {
+    "runId": "20261026-141802",
+    "action": "rerun-target",
+    "module": "A",
+    "system": "Target",
+    "step": "Step5",
+    "stepIndex": 6,
+    "stepTotal": 13,
+    "stepTotalEstimated": false,
+    "startedAt": "2026-10-26T14:18:02.0000000+00:00",
+    "testStartedAt": "2026-10-26T14:18:40.0000000+00:00",
+    "jobs": [
+      { "module": "A", "system": "Target", "step": "Step5", "stepIndex": 6, "stepTotal": 13 },
+      { "module": "B", "system": "Target", "step": "Step2", "stepIndex": 3, "stepTotal": 9 }
+    ]
+  },
+  "apps": [
+    { "name": "service", "pid": 22656, "startedByRunner": true, "url": "http://localhost:5000/PayorInformation.svc", "healthAccept": "anyResponse" },
+    { "name": "reference", "pid": 28960, "startedByRunner": true, "url": "http://localhost:5100/Pages/PayorList.aspx", "healthAccept": "status200" },
+    { "name": "target", "pid": 26200, "startedByRunner": true, "url": "http://localhost:5200/Pages/PayorList", "healthAccept": "status200" }
+  ],
+  "modules": {
+    "A": {
+      "name": "Load the page and explore the grid (sort & pagination)",
+      "plannedSteps": 13,
+      "dataEffect": "read-only",
+      "cssStates": ["page_load", "sorted"],
+      "tests": { "reference": "ReferencePayorList_ModA", "target": "PayorList_ModA" },
+      "reference": { "status": "PASS", "stepsPass": 13, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 54, "assertionsPassed": 54, "assertionsFailed": 0, "executedAt": "2026-10-26T14:06:52.0000000+00:00", "durationMs": 51731, "abortReason": null, "results": "runs/ModuleA/Reference/results.json" },
+      "target": { "status": "FAIL", "stepsPass": 5, "stepsFail": 8, "stepsNotTested": 0, "assertionsTotal": 38, "assertionsPassed": 27, "assertionsFailed": 11, "executedAt": "2026-10-26T14:07:55.0000000+00:00", "durationMs": 60894, "abortReason": null, "results": "runs/ModuleA/Target/results.json" },
+      "openFindings": 9,
+      "actionableCssDiffs": 4,
+      "actionableCssRows": 5,
+      "cssDiffsTotal": 6,
+      "notTested": 0,
+      "harnessError": null,
+      "reports": { "parity": "reports/ModuleA_Parity.md", "cssDiff": "reports/ModuleA_CSS_Diff.md", "performance": "reports/ModuleA_Performance.md", "manualTests": "reports/ModuleA_ManualTests.md" },
+      "complete": false
+    },
+    "B": {
+      "name": "Filter the grid (Name / Code / Status) and clear",
+      "plannedSteps": 9,
+      "dataEffect": "read-only",
+      "cssStates": ["filter_initial", "filtered"],
+      "tests": { "reference": "ReferencePayorList_ModB", "target": "PayorList_ModB" },
+      "reference": { "status": "NOT_RUN", "stepsPass": 0, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 0, "assertionsPassed": 0, "assertionsFailed": 0, "executedAt": null, "durationMs": 0, "abortReason": null, "results": "runs/ModuleB/Reference/results.json" },
+      "target": { "status": "NOT_RUN", "stepsPass": 0, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 0, "assertionsPassed": 0, "assertionsFailed": 0, "executedAt": null, "durationMs": 0, "abortReason": null, "results": "runs/ModuleB/Target/results.json" },
+      "openFindings": 0,
+      "actionableCssDiffs": 0,
+      "actionableCssRows": 0,
+      "cssDiffsTotal": 0,
+      "notTested": 0,
+      "harnessError": "build error in PayorListModuleB_v2.cs after 3 attempts; see logs/build-B.log",
+      "reports": { "parity": "reports/ModuleB_Parity.md", "cssDiff": "reports/ModuleB_CSS_Diff.md", "performance": "reports/ModuleB_Performance.md", "manualTests": "reports/ModuleB_ManualTests.md" },
+      "complete": false
+    }
+  },
+  "totals": { "openFindings": 9, "actionableCssDiffs": 4 },
+  "fixLoop": {
+    "round": 1,
+    "maxRounds": 2,
+    "clean": false,
+    "history": [
+      { "round": 1, "source": "loop", "at": "2026-10-26T14:15:30.0000000+00:00",
+        "modules": { "A": { "openFindingsBefore": 9, "actionableCssBefore": 4 } } }
+    ]
+  },
+  "finalReport": { "path": "reports/FinalReport.md", "signedOff": false, "signedOffAt": null, "response": null },
+  "allModulesComplete": false,
+  "events": [],
+  "previousRun": { "kind": "reset", "archivedAt": "2026-10-26T13:59:00.0000000+00:00", "path": "previous-run/20261026-135900", "data": null },
+  "progress": {
+    "status": "RUNNING",
+    "now": "Module A (1 of 4) - Target - Step 6 of 13: Click Last page",
+    "next": "Module A Step6: Click First page (last -> 1)",
+    "eta": "~00:00:41",
+    "recentEvents": [
+      "14:15:30 Fix round 1 (loop) started; modules: A",
+      "14:18:02 rerun-target Module A (20261026-141802) started",
+      "14:19:10 Module A Target Step4 PASS: Click Previous page (2 -> 1) -> pager.info: \"View 1 - 10 of 15\" = expected"
+    ]
+  }
+}

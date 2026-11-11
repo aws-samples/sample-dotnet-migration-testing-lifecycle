@@ -1,0 +1,91 @@
+# testing-lifecycle zero-prompt rules v1
+# Template for the testing-lifecycle repo.
+#
+# THIS FILE IS A TEMPLATE. Kiro does NOT read it from here.
+# Kiro stores workspace permission rules outside the repo
+# (~/.kiro/workspace-roots/<hash>/permissions.yaml), and agents are blocked from
+# writing there by design. Install once per clone (about 30 seconds):
+#
+#   1. Open this repo folder itself as the Kiro workspace.
+#   2. Ctrl+Shift+P -> "Kiro: Open Permissions (Workspace)".
+#   3. Replace that file's entire contents with this file's contents. Save.
+#   4. Start a NEW chat session (rules load per session).
+#
+# Effect: no approval prompts for reading, writing project files, building, or
+# running the test harness. People are asked only at the workflow's designed
+# human gates, plus the destructive commands gated below.
+#
+# Precedence: deny > ask > allow. Restrictive rules always win.
+# Note: Kiro splits compound shell commands into parts and matches each part,
+# which is why a blanket shell allow is used instead of a per-command list.
+
+rules:
+  # ---------------------------------------------------------------
+  # DENY: the floor.
+  # ---------------------------------------------------------------
+
+  # The Reference (legacy) app is the source of truth. Never modify it.
+  - capability: fs_write
+    effect: deny
+    match:
+      # change to your Reference source path (appsettings.test.json ReferenceSourcePath)
+      - "**/sample/PayorContracts.Legacy/**"
+
+  # Secrets stay out of reach (reads and writes).
+  - capability: fs_read
+    effect: deny
+    match:
+      - "**/.env"
+      - "**/.env.*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/.ssh/**"
+      - "**/.aws/credentials"
+
+  - capability: fs_write
+    effect: deny
+    match:
+      - "**/.env"
+      - "**/.env.*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/.ssh/**"
+      - "**/.aws/credentials"
+
+  # Destructive / history-rewriting commands.
+  - capability: shell
+    effect: deny
+    match:
+      - "git push --force*"
+      - "git push -f*"
+      - "git push * --force*"
+      - "git reset --hard*"
+      - "git clean *"
+      - "* --no-verify*"
+
+  # ---------------------------------------------------------------
+  # ASK: only things that leave the machine or change shared history.
+  # ---------------------------------------------------------------
+  - capability: shell
+    effect: ask
+    match:
+      - "git push*"
+      - "git commit*"
+
+  # ---------------------------------------------------------------
+  # ALLOW: everything routine, no prompts.
+  # ---------------------------------------------------------------
+  - capability: fs_read
+    effect: allow
+    match:
+      - "**"
+
+  - capability: fs_write
+    effect: allow
+    match:
+      - "./**"
+
+  - capability: shell
+    effect: allow
+    match:
+      - "*"

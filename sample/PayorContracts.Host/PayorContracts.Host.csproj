@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
+      Pinned to releases with no known advisories. CoreWCF 1.9.0 carried a critical SAML
+      signature-validation bypass, fixed in 1.9.1. Negotiate must stay at 10.0.13 or later.
+      CoreWCF.Primitives still pulls System.Security.Cryptography.Xml/.Pkcs 8.0.x, which the
+      net10.0 SDK prunes here; PayorContracts.Client pins them directly because its graph
+      does not prune them.
+      Re-check with "dotnet list sample/PayorContracts.sln package" using the vulnerable and
+      include-transitive options before reusing this project.
+    -->
+    <PackageReference Include="CoreWCF.Primitives" Version="1.9.1" />
+    <PackageReference Include="CoreWCF.Http" Version="1.9.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="10.0.14" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,619 @@
+@page "/Pages/ContractHierarchy"
+@rendermode InteractiveServer
+@using PayorContracts.Web.Models
+@using PayorContracts.Web.Services
+@inject ContractHierarchyService HierarchyService
+@inject ILogger<ContractHierarchy> Logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Contract Hierarchy</PageTitle>
+
+<style>
+    .cell-wrapper { min-height: 36px; height: 36px; display: flex; align-items: center; width: 100%; overflow: hidden; }
+    .cell-display { cursor: pointer; padding: 4px 6px; border: 1px solid transparent; border-radius: 3px; min-height: 36px; height: 36px; display: flex; align-items: center; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cell-display:hover { background: #e3f2fd; border-color: #90caf9; }
+    .cell-edit { min-height: 36px; height: 36px; display: flex; align-items: center; width: 100%; }
+    .cell-edit .mud-input-control { margin: 0 !important; }
+    .level-header { display: flex; align-items: center; justify-content: space-between; }
+    .validation-error { color: #e74c3c; font-size: 0.8em; margin-top: 2px; }
+    .child-grid-container { padding: 8px 16px 8px 48px; background: #fafafa; }
+    .child-grid-container .mud-table { background: white; }
+    .grandchild-grid-container { padding: 8px 16px 8px 48px; background: #f0f0f0; }
+    .grandchild-grid-container .mud-table { background: white; }
+</style>
+
+<!-- Batch Save/Cancel Toolbar -->
+@if (changedContracts.Count > 0 || changedPlans.Count > 0 || changedBenefits.Count > 0)
+{
+    <MudPaper Class="pa-3 mb-3" Elevation="1">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.body2" Color="Color.Warning">
+                Unsaved changes: @changedContracts.Count contract(s), @changedPlans.Count plan(s), @changedBenefits.Count benefit(s)
+            </MudText>
+            <MudStack Row="true" Spacing="2">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelAllChanges">Cancel All</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAllChanges">Save All</MudButton>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+}
+
+<!-- Level 1: Contracts with HierarchyColumn -->
+<MudPaper Class="pa-4 mb-4" Elevation="2">
+    <div class="level-header mb-3">
+        <MudText Typo="Typo.h6">Contracts</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddContractDialog">
+            Add Contract
+        </MudButton>
+    </div>
+
+    <MudDataGrid T="ContractDto" Items="@contracts" Dense="true" Striped="true" Hover="true" ReadOnly="true">
+        <Columns>
+            <HierarchyColumn T="ContractDto" />
+            <TemplateColumn Title="Name" SortBy="@(new Func<ContractDto, object>(x => x.Name))">
+                <CellTemplate>
+                    <div class="cell-wrapper">
+                        @if (IsEditing(context.Item.Id, "c", "Name"))
+                        {
+                            <div class="cell-edit">
+                                <MudTextField Value="@context.Item.Name" Variant="Variant.Text" Margin="Margin.Dense" Immediate="true" AutoFocus="true"
+                                              ValueChanged="@((string v) => { context.Item.Name = v; MarkContractChanged(context.Item); })"
+                                              OnBlur="@(() => StopEditing(context.Item.Id, "c", "Name"))" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "c", "Name"))">@context.Item.Name</div>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Type">
+                <CellTemplate>
+                    <div class="cell-wrapper">
+                        @if (IsEditing(context.Item.Id, "c", "Type"))
+                        {
+                            <div class="cell-edit">
+                                <MudSelect T="string" Value="@context.Item.ContractType" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
+                                           ValueChanged="@((string v) => { context.Item.ContractType = v; MarkContractChanged(context.Item); StopEditing(context.Item.Id, "c", "Type"); })">
+                                    <MudSelectItem Value="@("Commercial")">Commercial</MudSelectItem>
+                                    <MudSelectItem Value="@("Government")">Government</MudSelectItem>
+                                    <MudSelectItem Value="@("Medicare")">Medicare</MudSelectItem>
+                                    <MudSelectItem Value="@("Medicaid")">Medicaid</MudSelectItem>
+                                </MudSelect>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "c", "Type"))">@context.Item.ContractType</div>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Start Date">
+                <CellTemplate>
+                    <div class="cell-wrapper">
+                        @if (IsEditing(context.Item.Id, "c", "Start"))
+                        {
+                            <div class="cell-edit">
+                                <MudDatePicker Date="@context.Item.StartDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                               DateChanged="@((DateTime? v) => { context.Item.StartDate = v; MarkContractChanged(context.Item); StopEditing(context.Item.Id, "c", "Start"); })" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "c", "Start"))">@(context.Item.StartDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="End Date">
+                <CellTemplate>
+                    <div class="cell-wrapper">
+                        @if (IsEditing(context.Item.Id, "c", "End"))
+                        {
+                            <div class="cell-edit">
+                                <MudDatePicker Date="@context.Item.EndDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                               DateChanged="@((DateTime? v) => { context.Item.EndDate = v; MarkContractChanged(context.Item); StopEditing(context.Item.Id, "c", "End"); })" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "c", "End"))">@(context.Item.EndDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Active">
+                <CellTemplate>
+                    <MudSwitch T="bool" Value="@context.Item.IsActive" Color="Color.Success"
+                               ValueChanged="@((bool v) => { context.Item.IsActive = v; MarkContractChanged(context.Item); })" />
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.PlanCount" Title="Plans" />
+        </Columns>
+        <ChildRowContent Context="contractContext">@{ var contract = contractContext.Item;
+                var plansForContract = GetPlansForContract(contract.Id);
+            }
+            <div class="child-grid-container">
+                <div class="level-header mb-2">
+                    <MudText Typo="Typo.subtitle1">Plans for: @contract.Name</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenAddPlanDialog(contract.Id))">
+                        Add Plan
+                    </MudButton>
+                </div>
+
+                <MudDataGrid T="PlanDto" Items="@plansForContract" Dense="true" Striped="true" Hover="true" ReadOnly="true">
+                    <Columns>
+                        <HierarchyColumn T="PlanDto" />
+                        <TemplateColumn Title="Plan Name">
+                            <CellTemplate>
+                                <div class="cell-wrapper">
+                                    @if (IsEditing(context.Item.Id, "p", "Name"))
+                                    {
+                                        <div class="cell-edit">
+                                            <MudTextField Value="@context.Item.PlanName" Variant="Variant.Text" Margin="Margin.Dense" Immediate="true" AutoFocus="true"
+                                                          ValueChanged="@((string v) => { context.Item.PlanName = v; MarkPlanChanged(context.Item); })"
+                                                          OnBlur="@(() => StopEditing(context.Item.Id, "p", "Name"))" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "p", "Name"))">@context.Item.PlanName</div>
+                                    }
+                                </div>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Code">
+                            <CellTemplate>
+                                <div class="cell-wrapper">
+                                    @if (IsEditing(context.Item.Id, "p", "Code"))
+                                    {
+                                        <div class="cell-edit">
+                                            <MudTextField Value="@context.Item.PlanCode" Variant="Variant.Text" Margin="Margin.Dense" Immediate="true" AutoFocus="true"
+                                                          ValueChanged="@((string v) => { context.Item.PlanCode = v; MarkPlanChanged(context.Item); })"
+                                                          OnBlur="@(() => StopEditing(context.Item.Id, "p", "Code"))" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "p", "Code"))">@context.Item.PlanCode</div>
+                                    }
+                                </div>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Effective Date">
+                            <CellTemplate>
+                                <div class="cell-wrapper">
+                                    @if (IsEditing(context.Item.Id, "p", "Eff"))
+                                    {
+                                        <div class="cell-edit">
+                                            <MudDatePicker Date="@context.Item.EffectiveDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                                           DateChanged="@((DateTime? v) => { context.Item.EffectiveDate = v; MarkPlanChanged(context.Item); StopEditing(context.Item.Id, "p", "Eff"); })" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "p", "Eff"))">@(context.Item.EffectiveDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                                    }
+                                </div>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Term Date">
+                            <CellTemplate>
+                                <div class="cell-wrapper">
+                                    @if (IsEditing(context.Item.Id, "p", "Term"))
+                                    {
+                                        <div class="cell-edit">
+                                            <MudDatePicker Date="@context.Item.TermDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                                           DateChanged="@((DateTime? v) => { context.Item.TermDate = v; MarkPlanChanged(context.Item); StopEditing(context.Item.Id, "p", "Term"); })" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "p", "Term"))">@(context.Item.TermDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                                    }
+                                </div>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Status">
+                            <CellTemplate>
+                                <div class="cell-wrapper">
+                                    @if (IsEditing(context.Item.Id, "p", "Status"))
+                                    {
+                                        <div class="cell-edit">
+                                            <MudSelect T="string" Value="@context.Item.Status" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
+                                                       ValueChanged="@((string v) => { context.Item.Status = v; MarkPlanChanged(context.Item); StopEditing(context.Item.Id, "p", "Status"); })">
+                                                <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                                                <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                                                <MudSelectItem Value="@("Terminated")">Terminated</MudSelectItem>
+                                            </MudSelect>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "p", "Status"))">@context.Item.Status</div>
+                                    }
+                                </div>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.BenefitCount" Title="Benefits" />
+                    </Columns>
+                    <ChildRowContent Context="planContext">@{ var plan = planContext.Item;
+                            var benefitsForPlan = GetBenefitsForPlan(plan.Id);
+                        }
+                        <div class="grandchild-grid-container">
+                            <div class="level-header mb-2">
+                                <MudText Typo="Typo.subtitle2">Benefits for: @plan.PlanName</MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenAddBenefitDialog(plan.Id))">
+                                    Add Benefit
+                                </MudButton>
+                            </div>
+
+                            <MudDataGrid T="BenefitDto" Items="@benefitsForPlan" Dense="true" Striped="true" Hover="true" ReadOnly="true">
+                                <Columns>
+                                    <TemplateColumn Title="Benefit Name">
+                                        <CellTemplate>
+                                            <div class="cell-wrapper">
+                                                @if (IsEditing(context.Item.Id, "b", "Name"))
+                                                {
+                                                    <div class="cell-edit">
+                                                        <MudTextField Value="@context.Item.BenefitName" Variant="Variant.Text" Margin="Margin.Dense" Immediate="true" AutoFocus="true"
+                                                                      ValueChanged="@((string v) => { context.Item.BenefitName = v; MarkBenefitChanged(context.Item); })"
+                                                                      OnBlur="@(() => StopEditing(context.Item.Id, "b", "Name"))" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "b", "Name"))">@context.Item.BenefitName</div>
+                                                }
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Coverage Type">
+                                        <CellTemplate>
+                                            <div class="cell-wrapper">
+                                                @if (IsEditing(context.Item.Id, "b", "Coverage"))
+                                                {
+                                                    <div class="cell-edit">
+                                                        <MudSelect T="string" Value="@context.Item.CoverageType" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
+                                                                   ValueChanged="@((string v) => { context.Item.CoverageType = v; MarkBenefitChanged(context.Item); StopEditing(context.Item.Id, "b", "Coverage"); })">
+                                                            <MudSelectItem Value="@("Medical")">Medical</MudSelectItem>
+                                                            <MudSelectItem Value="@("Dental")">Dental</MudSelectItem>
+                                                            <MudSelectItem Value="@("Vision")">Vision</MudSelectItem>
+                                                            <MudSelectItem Value="@("Pharmacy")">Pharmacy</MudSelectItem>
+                                                            <MudSelectItem Value="@("Behavioral")">Behavioral</MudSelectItem>
+                                                        </MudSelect>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "b", "Coverage"))">@context.Item.CoverageType</div>
+                                                }
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Copay ($)">
+                                        <CellTemplate>
+                                            <div class="cell-wrapper">
+                                                @if (IsEditing(context.Item.Id, "b", "Copay"))
+                                                {
+                                                    <div class="cell-edit">
+                                                        <MudNumericField T="decimal" Value="@context.Item.CopayAmount" Variant="Variant.Text" Margin="Margin.Dense"
+                                                                         ValueChanged="@((decimal v) => { context.Item.CopayAmount = v; MarkBenefitChanged(context.Item); })"
+                                                                         OnBlur="@(() => StopEditing(context.Item.Id, "b", "Copay"))" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "b", "Copay"))">@context.Item.CopayAmount.ToString("C")</div>
+                                                }
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Start Date">
+                                        <CellTemplate>
+                                            <div class="cell-wrapper">
+                                                @if (IsEditing(context.Item.Id, "b", "Start"))
+                                                {
+                                                    <div class="cell-edit">
+                                                        <MudDatePicker Date="@context.Item.StartDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                                                       DateChanged="@((DateTime? v) => { context.Item.StartDate = v; MarkBenefitChanged(context.Item); StopEditing(context.Item.Id, "b", "Start"); })" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "b", "Start"))">@(context.Item.StartDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                                                }
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="End Date">
+                                        <CellTemplate>
+                                            <div class="cell-wrapper">
+                                                @if (IsEditing(context.Item.Id, "b", "End"))
+                                                {
+                                                    <div class="cell-edit">
+                                                        <MudDatePicker Date="@context.Item.EndDate" Variant="Variant.Text" Margin="Margin.Dense" DateFormat="MM/dd/yyyy"
+                                                                       DateChanged="@((DateTime? v) => { context.Item.EndDate = v; MarkBenefitChanged(context.Item); StopEditing(context.Item.Id, "b", "End"); })" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-display" @onclick="@(() => StartEditing(context.Item.Id, "b", "End"))">@(context.Item.EndDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+                                                }
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                </Columns>
+                            </MudDataGrid>
+                        </div>
+                    </ChildRowContent>
+                </MudDataGrid>
+            </div>
+        </ChildRowContent>
+    </MudDataGrid>
+</MudPaper>
+
+@code {
+    private List<ContractDto> contracts = new();
+
+    // Lazy-loaded child data dictionaries
+    private Dictionary<int, List<PlanDto>> plansByContract = new();
+    private Dictionary<int, List<BenefitDto>> benefitsByPlan = new();
+
+    // Change tracking
+    private HashSet<int> changedContracts = new();
+    private HashSet<int> changedPlans = new();
+    private HashSet<int> changedBenefits = new();
+    private HashSet<string> editingCells = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadContracts();
+    }
+
+    private async Task LoadContracts()
+    {
+        try
+        {
+            contracts = HierarchyService.GetAllContracts();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading contracts");
+            Snackbar.Add("Error loading contracts.", Severity.Error);
+        }
+    }
+
+    // --- Lazy loading child data ---
+    private List<PlanDto> GetPlansForContract(int contractId)
+    {
+        if (!plansByContract.ContainsKey(contractId))
+        {
+            try
+            {
+                plansByContract[contractId] = HierarchyService.GetPlansByContractId(contractId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading plans for contract {ContractId}", contractId);
+                Snackbar.Add($"Error loading plans for contract {contractId}.", Severity.Error);
+                plansByContract[contractId] = new();
+            }
+        }
+        return plansByContract[contractId];
+    }
+
+    private List<BenefitDto> GetBenefitsForPlan(int planId)
+    {
+        if (!benefitsByPlan.ContainsKey(planId))
+        {
+            try
+            {
+                benefitsByPlan[planId] = HierarchyService.GetBenefitsByPlanId(planId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading benefits for plan {PlanId}", planId);
+                Snackbar.Add($"Error loading benefits for plan {planId}.", Severity.Error);
+                benefitsByPlan[planId] = new();
+            }
+        }
+        return benefitsByPlan[planId];
+    }
+
+    // --- Edit state ---
+    private string CellKey(int id, string level, string field) => $"{level}_{id}_{field}";
+    private bool IsEditing(int id, string level, string field) => editingCells.Contains(CellKey(id, level, field));
+    private void StartEditing(int id, string level, string field) => editingCells.Add(CellKey(id, level, field));
+    private void StopEditing(int id, string level, string field) => editingCells.Remove(CellKey(id, level, field));
+
+    // --- Change tracking ---
+    private void MarkContractChanged(ContractDto item) { changedContracts.Add(item.Id); }
+    private void MarkPlanChanged(PlanDto item) { changedPlans.Add(item.Id); }
+    private void MarkBenefitChanged(BenefitDto item) { changedBenefits.Add(item.Id); }
+
+    // --- Save All ---
+    private async Task SaveAllChanges()
+    {
+        if (changedContracts.Count > 0) await SaveContractChanges();
+        if (changedPlans.Count > 0) await SavePlanChanges();
+        if (changedBenefits.Count > 0) await SaveBenefitChanges();
+    }
+
+    private async Task SaveContractChanges()
+    {
+        var toSave = contracts.Where(c => changedContracts.Contains(c.Id)).ToList();
+        // Validation
+        foreach (var c in toSave)
+        {
+            if (string.IsNullOrWhiteSpace(c.Name) || c.Name.Length < 3)
+            {
+                Snackbar.Add($"Contract '{c.Name}': Name must be at least 3 characters.", Severity.Error);
+                return;
+            }
+            if (c.StartDate.HasValue && c.EndDate.HasValue && c.StartDate >= c.EndDate)
+            {
+                Snackbar.Add($"Contract '{c.Name}': Start Date must be before End Date.", Severity.Error);
+                return;
+            }
+        }
+        var response = HierarchyService.BatchSaveContracts(toSave);
+        if (response.Success)
+        {
+            Snackbar.Add(response.Message, Severity.Success);
+            changedContracts.Clear();
+            await LoadContracts();
+        }
+        else
+        {
+            Snackbar.Add(response.Message, Severity.Error);
+            foreach (var e in response.Errors) Snackbar.Add(e, Severity.Error);
+        }
+    }
+
+    private async Task SavePlanChanges()
+    {
+        var allPlans = plansByContract.Values.SelectMany(p => p).ToList();
+        var toSave = allPlans.Where(p => changedPlans.Contains(p.Id)).ToList();
+        // Validation
+        foreach (var p in toSave)
+        {
+            if (string.IsNullOrWhiteSpace(p.PlanName) || p.PlanName.Length < 3)
+            {
+                Snackbar.Add($"Plan '{p.PlanName}': Name must be at least 3 characters.", Severity.Error);
+                return;
+            }
+            if (p.EffectiveDate.HasValue && p.TermDate.HasValue && p.EffectiveDate >= p.TermDate)
+            {
+                Snackbar.Add($"Plan '{p.PlanName}': Effective Date must be before Term Date.", Severity.Error);
+                return;
+            }
+        }
+        var response = HierarchyService.BatchSavePlans(toSave);
+        if (response.Success)
+        {
+            Snackbar.Add(response.Message, Severity.Success);
+            changedPlans.Clear();
+            // Refresh affected plan lists
+            foreach (var contractId in toSave.Select(p => p.ContractId).Distinct())
+            {
+                plansByContract.Remove(contractId);
+            }
+        }
+        else
+        {
+            Snackbar.Add(response.Message, Severity.Error);
+        }
+    }
+
+    private async Task SaveBenefitChanges()
+    {
+        var allBenefits = benefitsByPlan.Values.SelectMany(b => b).ToList();
+        var toSave = allBenefits.Where(b => changedBenefits.Contains(b.Id)).ToList();
+        // Validation
+        foreach (var b in toSave)
+        {
+            if (string.IsNullOrWhiteSpace(b.BenefitName) || b.BenefitName.Length < 3)
+            {
+                Snackbar.Add($"Benefit '{b.BenefitName}': Name must be at least 3 characters.", Severity.Error);
+                return;
+            }
+            if (b.CopayAmount < 0)
+            {
+                Snackbar.Add($"Benefit '{b.BenefitName}': Copay must be >= 0.", Severity.Error);
+                return;
+            }
+            if (b.StartDate.HasValue && b.EndDate.HasValue && b.StartDate >= b.EndDate)
+            {
+                Snackbar.Add($"Benefit '{b.BenefitName}': Start Date must be before End Date.", Severity.Error);
+                return;
+            }
+        }
+        var response = HierarchyService.BatchSaveBenefits(toSave);
+        if (response.Success)
+        {
+            Snackbar.Add(response.Message, Severity.Success);
+            changedBenefits.Clear();
+            // Refresh affected benefit lists
+            foreach (var planId in toSave.Select(b => b.PlanId).Distinct())
+            {
+                benefitsByPlan.Remove(planId);
+            }
+        }
+        else
+        {
+            Snackbar.Add(response.Message, Severity.Error);
+        }
+    }
+
+    // --- Cancel All ---
+    private void CancelAllChanges()
+    {
+        changedContracts.Clear();
+        changedPlans.Clear();
+        changedBenefits.Clear();
+        editingCells.Clear();
+        // Reload data
+        contracts = HierarchyService.GetAllContracts();
+        plansByContract.Clear();
+        benefitsByPlan.Clear();
+        Snackbar.Add("All changes discarded.", Severity.Info);
+    }
+
+    // --- Add Dialogs ---
+    private async Task OpenAddContractDialog()
+    {
+        var parameters = new DialogParameters<AddContractDialog>();
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddContractDialog>("Add New Contract", parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            contracts = HierarchyService.GetAllContracts();
+            Snackbar.Add("Contract added successfully.", Severity.Success);
+        }
+    }
+
+    private async Task OpenAddPlanDialog(int contractId)
+    {
+        var parameters = new DialogParameters<AddPlanDialog> { { x => x.ContractId, contractId } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddPlanDialog>("Add New Plan", parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            // Refresh plans for this contract
+            plansByContract.Remove(contractId);
+            contracts = HierarchyService.GetAllContracts(); // refresh plan count
+            Snackbar.Add("Plan added successfully.", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenAddBenefitDialog(int planId)
+    {
+        var parameters = new DialogParameters<AddBenefitDialog> { { x => x.PlanId, planId } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddBenefitDialog>("Add New Benefit", parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            // Refresh benefits for this plan
+            benefitsByPlan.Remove(planId);
+            // Refresh plan's benefit count
+            var plan = plansByContract.Values.SelectMany(p => p).FirstOrDefault(p => p.Id == planId);
+            if (plan != null)
+            {
+                plansByContract.Remove(plan.ContractId);
+            }
+            Snackbar.Add("Benefit added successfully.", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}
