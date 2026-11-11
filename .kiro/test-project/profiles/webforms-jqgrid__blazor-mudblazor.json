@@ -1,0 +1,63 @@
+{
+  "_comment": "ASP.NET WebForms + jQuery/jqGrid (Reference) -> Blazor + MudBlazor (Target). Extends generic. Only add entries the team agrees are not visible defects, always with a reason; per-page css-map.json 'accepted' entries override these.",
+  "name": "webforms-jqgrid__blazor-mudblazor",
+  "extends": "generic",
+  "description": "WebForms with jqGrid/jQuery UI to Blazor with MudBlazor.",
+  "roleEquivalences": [
+    ["gridcell", "cell"],
+    ["combobox", "textbox"]
+  ],
+  "selectorHints": {
+    "grid":   { "reference": ["#gview_*", ".ui-jqgrid"], "target": [".mud-table-container", ".mud-table"] },
+    "header": { "reference": [".ui-jqgrid-htable tr.ui-jqgrid-labels", "th.ui-th-column"], "target": [".mud-table-head tr", ".mud-table-head th.mud-table-cell"] },
+    "row":    { "reference": ["tr.jqgrow"], "target": ["tbody tr.mud-table-row"] },
+    "pager":  { "reference": [".ui-jqgrid-pager", "#*Pager"], "target": [".mud-table-pagination"] },
+    "filter": { "reference": [".filter-panel", "fieldset"], "target": [".mud-paper", ".mud-input-control"] },
+    "dialog": { "reference": [".ui-dialog"], "target": [".mud-dialog"] }
+  },
+  "accepted": [
+    {
+      "property": "disabled.cursor",
+      "reference": "^(default|auto)$",
+      "target": "^not-allowed$",
+      "reason": "MudBlazor shows the not-allowed cursor on disabled controls; WebForms keeps the browser default"
+    },
+    {
+      "property": "font-weight",
+      "role": "columnheader",
+      "reference": "^(500|600)$",
+      "target": "^(500|600)$",
+      "reason": "Material header weight 500 vs jqGrid semibold 600, agreed acceptable (no visual break); bold 700 headers stay counted"
+    },
+    {
+      "property": "color",
+      "reference": "^rgb\\(69, 69, 69\\)$",
+      "target": "^rgb\\(66, 66, 66\\)$",
+      "reason": "jQuery UI text #454545 vs MudBlazor text #424242: 3 units per channel, not distinguishable; other colors stay counted"
+    },
+    {
+      "property": "opacity",
+      "role": "checkbox",
+      "reference": "^1$",
+      "target": "^0$",
+      "reason": "MudCheckBox keeps the native input at opacity 0 under its visible SVG box; the checkbox itself is visible"
+    },
+    {
+      "property": "layout.overlap",
+      "role": "label",
+      "reason": "MudBlazor floating labels are drawn on the input's top border by design; the label position difference stays counted as layout.labelPosition"
+    },
+    {
+      "property": "layout.order",
+      "role": "label",
+      "reason": "MudBlazor renders the input before its floating label in the DOM; on screen the label is still first (layout.labelPosition stays counted)"
+    },
+    {
+      "property": "layout.order",
+      "role": "textbox",
+      "reason": "MudBlazor renders the input before its floating label in the DOM; on screen the label is still first (layout.labelPosition stays counted)"
+    }
+  ],
+  "ignoreProperties": [],
+  "ignoreRoles": []
+}

@@ -1,0 +1,226 @@
+@page "/Pages/PayorEdit"
+@rendermode InteractiveServer
+@using PayorContracts.Web.Models
+@inject ISnackbar Snackbar
+
+<PageTitle>Payor Batch Editing</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Payor Management — Batch Edit with Delete</MudText>
+
+<!-- Validation Errors Summary -->
+@if (validationErrors.Any())
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true"
+              CloseIconClicked="() => validationErrors.Clear()">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Please fix the following errors:</MudText>
+        <ul>
+            @foreach (var error in validationErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </MudAlert>
+}
+
+<!-- Action Buttons -->
+<MudPaper Class="pa-3 mb-4 d-flex gap-2" Elevation="1">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAll"
+               StartIcon="@Icons.Material.Filled.Save">
+        Save All Changes
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="ResetChanges"
+               StartIcon="@Icons.Material.Filled.Undo">
+        Reset
+    </MudButton>
+    <MudSpacer />
+    <MudText Typo="Typo.body2" Class="align-self-center mud-text-secondary">
+        @GetChangesSummary()
+    </MudText>
+</MudPaper>
+
+<!-- MudDataGrid with inline editable TemplateColumns -->
+<MudPaper Elevation="1">
+    <MudDataGrid T="EditablePayorDto" Items="@payors" Dense="true" Striped="true" Hover="true"
+                 SortMode="SortMode.Single" Filterable="false">
+        <Columns>
+            <!-- Checkbox column: unchecked = marked for deletion -->
+            <TemplateColumn Title="" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudCheckBox T="bool" @bind-Value="context.Item.IsIncluded"
+                                 Color="@(context.Item.IsIncluded ? Color.Primary : Color.Error)"
+                                 Size="Size.Small" />
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- ID — read-only -->
+            <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+
+            <!-- Name — inline text editing -->
+            <TemplateColumn Title="Payor Name" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.Name)">
+                <CellTemplate>
+                    <MudTextField @bind-Value="context.Item.Name" Variant="Variant.Text"
+                                  Margin="Margin.Dense" Immediate="true"
+                                  Disabled="@(!context.Item.IsIncluded)"
+                                  Error="@(IsFieldInvalid(context.Item, "Name"))"
+                                  ErrorText="Name required (min 3 chars)" />
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- Code — inline text editing -->
+            <TemplateColumn Title="Code" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.Code)">
+                <CellTemplate>
+                    <MudTextField @bind-Value="context.Item.Code" Variant="Variant.Text"
+                                  Margin="Margin.Dense" Immediate="true"
+                                  Disabled="@(!context.Item.IsIncluded)"
+                                  Error="@(IsFieldInvalid(context.Item, "Code"))"
+                                  ErrorText="Code required (min 3 chars)" />
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- Status — inline dropdown -->
+            <TemplateColumn Title="Status" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.IsActive)">
+                <CellTemplate>
+                    <MudSelect T="bool" @bind-Value="context.Item.IsActive" Variant="Variant.Text"
+                               Margin="Margin.Dense" Dense="true"
+                               Disabled="@(!context.Item.IsIncluded)">
+                        <MudSelectItem T="bool" Value="true">Active</MudSelectItem>
+                        <MudSelectItem T="bool" Value="false">Inactive</MudSelectItem>
+                    </MudSelect>
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- Category — inline dropdown -->
+            <TemplateColumn Title="Category" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.Category)">
+                <CellTemplate>
+                    <MudSelect T="string" @bind-Value="context.Item.Category" Variant="Variant.Text"
+                               Margin="Margin.Dense" Dense="true"
+                               Disabled="@(!context.Item.IsIncluded)"
+                               Error="@(IsFieldInvalid(context.Item, "Category"))"
+                               ErrorText="Category is required">
+                        <MudSelectItem T="string" Value="@("Commercial")">Commercial</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Medicare")">Medicare</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Medicaid")">Medicaid</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Tricare")">Tricare</MudSelectItem>
+                    </MudSelect>
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- Effective Date — inline date picker -->
+            <TemplateColumn Title="Effective Date" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.EffectiveDate ?? DateTime.MinValue)">
+                <CellTemplate>
+                    <MudDatePicker @bind-Date="context.Item.EffectiveDate" Variant="Variant.Text"
+                                   Margin="Margin.Dense"
+                                   Disabled="@(!context.Item.IsIncluded)"
+                                   Error="@(IsFieldInvalid(context.Item, "EffectiveDate"))"
+                                   ErrorText="Date is required" />
+                </CellTemplate>
+            </TemplateColumn>
+
+            <!-- Max Value — inline numeric -->
+            <TemplateColumn Title="Max Value" Sortable="true"
+                            SortBy="new Func<EditablePayorDto, object>(x => x.MaxContractValue)">
+                <CellTemplate>
+                    <MudNumericField T="decimal" @bind-Value="context.Item.MaxContractValue"
+                                     Variant="Variant.Text" Margin="Margin.Dense"
+                                     Disabled="@(!context.Item.IsIncluded)"
+                                     Error="@(IsFieldInvalid(context.Item, "MaxContractValue"))"
+                                     ErrorText="Must be > 0" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="EditablePayorDto" PageSizeOptions="new int[] { 5, 10, 25 }" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>
+
+@code {
+    private List<EditablePayorDto> payors = new();
+    private List<string> validationErrors = new();
+    private bool showErrors = false;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        payors = new List<EditablePayorDto>
+        {
+            new() { Id = 1, Name = "Acme Health Plans", Code = "ACM001", IsActive = true, Category = "Commercial", EffectiveDate = new DateTime(2023, 1, 15), MaxContractValue = 500000, IsIncluded = true },
+            new() { Id = 2, Name = "Bluebird Health Shield", Code = "BBHS01", IsActive = true, Category = "Commercial", EffectiveDate = new DateTime(2022, 6, 1), MaxContractValue = 750000, IsIncluded = true },
+            new() { Id = 3, Name = "Mesa Senior Plan A", Code = "MESA01", IsActive = true, Category = "Medicare", EffectiveDate = new DateTime(2021, 1, 1), MaxContractValue = 1000000, IsIncluded = true },
+            new() { Id = 4, Name = "Meadowlark State Plan", Code = "MDW001", IsActive = true, Category = "Medicaid", EffectiveDate = new DateTime(2023, 7, 1), MaxContractValue = 300000, IsIncluded = true },
+            new() { Id = 5, Name = "Tamarack Federal Plan", Code = "TMK001", IsActive = false, Category = "Tricare", EffectiveDate = new DateTime(2020, 3, 15), MaxContractValue = 200000, IsIncluded = true },
+            new() { Id = 6, Name = "Citrine Valley Healthcare", Code = "CTR001", IsActive = true, Category = "Commercial", EffectiveDate = new DateTime(2024, 1, 1), MaxContractValue = 600000, IsIncluded = true },
+        };
+    }
+
+    private void SaveAll()
+    {
+        validationErrors.Clear();
+        showErrors = true;
+
+        var includedRows = payors.Where(p => p.IsIncluded).ToList();
+        var deletedRows = payors.Where(p => !p.IsIncluded).ToList();
+
+        foreach (var row in includedRows)
+        {
+            if (string.IsNullOrWhiteSpace(row.Name) || row.Name.Length < 3)
+                validationErrors.Add($"Row {row.Id}: Payor Name is required (min 3 characters).");
+            if (string.IsNullOrWhiteSpace(row.Code) || row.Code.Length < 3)
+                validationErrors.Add($"Row {row.Id}: Code is required (min 3 characters).");
+            if (string.IsNullOrWhiteSpace(row.Category))
+                validationErrors.Add($"Row {row.Id} ({row.Name}): Category is required.");
+            if (row.EffectiveDate == null)
+                validationErrors.Add($"Row {row.Id} ({row.Name}): Effective Date is required.");
+            if (row.MaxContractValue <= 0)
+                validationErrors.Add($"Row {row.Id} ({row.Name}): Max Value must be greater than 0.");
+        }
+
+        if (validationErrors.Any())
+        {
+            Snackbar.Add($"Validation failed — {validationErrors.Count} error(s).", Severity.Error);
+            return;
+        }
+
+        Snackbar.Add($"Batch saved: {includedRows.Count} updated, {deletedRows.Count} deleted.", Severity.Success);
+        showErrors = false;
+    }
+
+    private bool IsFieldInvalid(EditablePayorDto row, string field)
+    {
+        if (!showErrors || !row.IsIncluded) return false;
+
+        return field switch
+        {
+            "Name" => string.IsNullOrWhiteSpace(row.Name) || row.Name.Length < 3,
+            "Code" => string.IsNullOrWhiteSpace(row.Code) || row.Code.Length < 3,
+            "Category" => string.IsNullOrWhiteSpace(row.Category),
+            "EffectiveDate" => row.EffectiveDate == null,
+            "MaxContractValue" => row.MaxContractValue <= 0,
+            _ => false
+        };
+    }
+
+    private void ResetChanges()
+    {
+        validationErrors.Clear();
+        showErrors = false;
+        LoadData();
+        Snackbar.Add("Changes reset.", Severity.Info);
+    }
+
+    private string GetChangesSummary()
+    {
+        var deleted = payors.Count(p => !p.IsIncluded);
+        var included = payors.Count(p => p.IsIncluded);
+        return deleted > 0 ? $"{included} to save, {deleted} to delete" : $"{included} records";
+    }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "page": "PayorList",
+  "lifecycle": "testing",
+  "state": "fixing",
+  "updatedAt": "2026-10-27T10:13:00.0000000+05:30",
+  "plan": { "signedOff": true, "signedOffAt": "2026-10-27T10:06:00.0000000+05:30", "signedOffRevision": 2, "response": "confirm", "planFile": "state-map/plan.json", "modules": ["A", "B"] },
+  "gate": { "pending": true, "name": "final_signoff", "since": "2026-10-27T10:13:30.0000000+05:30", "question": "Sign off the final report?", "reportPath": "reports/FinalReport.md", "lastResponse": "confirm" },
+  "currentRun": { "runId": "20261027-101900", "action": "run-page", "module": "B", "system": "Target", "step": "Step2", "stepIndex": 2, "stepTotal": 2, "startedAt": "2026-10-27T10:09:00.0000000+05:30" },
+  "modules": {
+    "A": {
+      "name": "Load the page and sort the grid",
+      "plannedSteps": 2,
+      "dataEffect": "read-only",
+      "reference": { "status": "PASS", "stepsPass": 3, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 4, "assertionsPassed": 4, "assertionsFailed": 0, "results": "runs/ModuleA/Reference/results.json" },
+      "target": { "status": "FAIL", "stepsPass": 2, "stepsFail": 1, "stepsNotTested": 0, "assertionsTotal": 4, "assertionsPassed": 3, "assertionsFailed": 1, "results": "runs/ModuleA/Target/results.json" },
+      "openFindings": 1,
+      "actionableCssDiffs": 1,
+      "cssDiffsTotal": 2,
+      "notTested": 1,
+      "harnessError": null
+    },
+    "B": {
+      "name": "Edit a cell and Save All",
+      "plannedSteps": 3,
+      "dataEffect": "mutating",
+      "reference": { "status": "PASS", "stepsPass": 2, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 3, "assertionsPassed": 3, "assertionsFailed": 0, "results": "runs/ModuleB/Reference/results.json" },
+      "target": { "status": "PASS", "stepsPass": 2, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 3, "assertionsPassed": 3, "assertionsFailed": 0, "results": "runs/ModuleB/Target/results.json" },
+      "openFindings": 0,
+      "actionableCssDiffs": 0,
+      "cssDiffsTotal": 0,
+      "notTested": 0,
+      "harnessError": null
+    }
+  },
+  "totals": { "openFindings": 1, "actionableCssDiffs": 1 },
+  "fixLoop": {
+    "round": 1,
+    "maxRounds": 3,
+    "clean": false,
+    "history": [
+      { "round": 1, "source": "loop", "at": "2026-10-27T10:12:00.0000000+05:30",
+        "modules": { "A": { "openFindingsBefore": 2, "actionableCssBefore": 1, "openFindingsAfter": 1, "actionableCssAfter": 1 } } }
+    ]
+  },
+  "events": [
+    { "type": "render-failed", "view": "module-result", "module": "B", "message": "plan.json unreadable", "runId": "20261027-101900", "at": "2026-10-27T10:11:31.0000000+05:30" },
+    { "type": "render-failed", "view": "run-summary", "module": "", "message": "older run", "runId": "20261026-090000", "at": "2026-10-26T09:05:00.0000000+05:30" }
+  ],
+  "finalReport": { "path": "reports/FinalReport.md", "signedOff": false, "signedOffAt": null, "response": null }
+}

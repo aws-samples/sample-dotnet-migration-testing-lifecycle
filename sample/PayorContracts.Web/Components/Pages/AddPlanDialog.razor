@@ -1,0 +1,57 @@
+@using PayorContracts.Web.Models
+@using PayorContracts.Web.Services
+@inject ContractHierarchyService HierarchyService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="model.PlanName" Label="Plan Name" Required="true" RequiredError="Plan Name is required (min 3 chars)"
+                      Variant="Variant.Outlined" Class="mb-3" />
+        <MudTextField @bind-Value="model.PlanCode" Label="Plan Code" Variant="Variant.Outlined" Class="mb-3" />
+        <MudDatePicker @bind-Date="model.EffectiveDate" Label="Effective Date" Variant="Variant.Outlined" DateFormat="MM/dd/yyyy" Class="mb-3" />
+        <MudDatePicker @bind-Date="model.TermDate" Label="Term Date" Variant="Variant.Outlined" DateFormat="MM/dd/yyyy" Class="mb-3" />
+        <MudSelect @bind-Value="model.Status" Label="Status" Variant="Variant.Outlined" Class="mb-3" Required="true">
+            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+            <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+            <MudSelectItem Value="@("Terminated")">Terminated</MudSelectItem>
+        </MudSelect>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">@errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int ContractId { get; set; }
+
+    private PlanDto model = new() { Status = "Active" };
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized() { model.ContractId = ContractId; }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Save()
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(model.PlanName) || model.PlanName.Length < 3)
+        { errorMessage = "Plan Name is required (min 3 characters)."; return; }
+
+        if (model.EffectiveDate.HasValue && model.TermDate.HasValue && model.EffectiveDate >= model.TermDate)
+        { errorMessage = "Effective Date must be before Term Date."; return; }
+
+        var response = HierarchyService.SavePlan(model);
+        if (response.Success)
+            MudDialog.Close(DialogResult.Ok(response.Id));
+        else
+            errorMessage = response.Message;
+    }
+}

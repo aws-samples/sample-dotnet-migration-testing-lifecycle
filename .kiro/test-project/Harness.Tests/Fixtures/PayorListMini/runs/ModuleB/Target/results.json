@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "page": "PayorList",
+  "module": "B",
+  "system": "Target",
+  "test": "PayorList_ModB",
+  "runId": "20261027-101900",
+  "startedAt": "2026-10-27T10:10:40.0000000+05:30",
+  "finishedAt": "2026-10-27T10:10:55.0000000+05:30",
+  "aborted": false,
+  "abortReason": null,
+  "cssMapMissing": false,
+  "totals": { "stepsPass": 2, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 3, "assertionsPassed": 3, "assertionsFailed": 0 },
+  "steps": [
+    {
+      "step": "Step1", "status": "PASS",
+      "description": "Edit Payor Name of row 1 to 'Acme Plus'. CHANGED: grid.row1.name: \"Acme\" -> \"Acme Plus\" (CHANGED). UNCHANGED: pager.range: \"View 1 - 10 of 15\" (unchanged). [744ms]",
+      "title": "Edit Payor Name of row 1 to 'Acme Plus'", "actionMs": 700, "stepMs": 744,
+      "assertions": [
+        { "field": "grid.row1.name", "type": "CHANGES", "expected": "Acme", "expectedIsConstant": false, "actual": "Acme Plus", "passed": true, "message": "grid.row1.name: \"Acme\" -> \"Acme Plus\" (CHANGED)" },
+        { "field": "pager.range", "type": "STAYS SAME", "expected": "View 1 - 10 of 15", "expectedIsConstant": false, "actual": "View 1 - 10 of 15", "passed": true, "message": "pager.range: \"View 1 - 10 of 15\" (unchanged)" }
+      ]
+    },
+    {
+      "step": "Step2", "status": "PASS",
+      "description": "Click Save All. CHANGED: status.message: \"\" -> \"Record(s) updated successfully\" (CHANGED). [1188ms]",
+      "title": "Click Save All", "actionMs": 1100, "stepMs": 1188,
+      "assertions": [
+        { "field": "status.message", "type": "CHANGES", "expected": "", "expectedIsConstant": false, "actual": "Record(s) updated successfully", "passed": true, "message": "status.message: \"\" -> \"Record(s) updated successfully\" (CHANGED)" }
+      ]
+    }
+  ],
+  "captures": [],
+  "uncoveredHtmlDiffs": [],
+  "cssStatesCaptured": []
+}

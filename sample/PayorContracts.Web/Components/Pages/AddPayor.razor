@@ -1,0 +1,132 @@
+@page "/Pages/AddPayor"
+@using PayorContracts.Web.Models
+@using PayorContracts.Web.Services
+@inject PayorService PayorService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Payor</PageTitle>
+
+<MudPaper Class="pa-6" MaxWidth="600px" Elevation="1">
+    <MudText Typo="Typo.h5" Class="mb-4">Add New Payor</MudText>
+
+    @if (showSuccess)
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4" ShowCloseIcon="true"
+                  CloseIconClicked="() => showSuccess = false">
+            Payor added successfully!
+        </MudAlert>
+    }
+
+    <!-- EditForm replaces <form> + jQuery Validate -->
+    <!-- DataAnnotationsValidator replaces $.validate({ rules: {...} }) -->
+    <EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <!-- Replaces: jQuery Validate errorClass + errorElement (shows all errors) -->
+        <MudGrid>
+            <MudItem xs="12">
+                <!-- Replaces: <input name="payorName"> + rules: { required, minlength, maxlength } -->
+                <MudTextField @bind-Value="model.PayorName" Label="Payor Name *"
+                              Variant="Variant.Outlined" Placeholder="Enter payor name"
+                              For="@(() => model.PayorName)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <input name="payorCode"> + rules: { required, minlength, maxlength, pattern } -->
+                <MudTextField @bind-Value="model.PayorCode" Label="Payor Code *"
+                              Variant="Variant.Outlined" Placeholder="e.g., ACM001"
+                              For="@(() => model.PayorCode)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <input name="contactEmail"> + rules: { required, email: true } -->
+                <MudTextField @bind-Value="model.ContactEmail" Label="Contact Email *"
+                              Variant="Variant.Outlined" Placeholder="email@example.com"
+                              InputType="InputType.Email"
+                              For="@(() => model.ContactEmail)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <input name="phoneNumber"> + rules: { phoneUS: true } -->
+                <MudTextField @bind-Value="model.PhoneNumber" Label="Phone Number"
+                              Variant="Variant.Outlined" Placeholder="(555) 123-4567"
+                              For="@(() => model.PhoneNumber)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <input name="maxContractValue"> + rules: { required, number, min, max } -->
+                <MudNumericField @bind-Value="model.MaxContractValue" Label="Max Contract Value *"
+                                 Variant="Variant.Outlined" Placeholder="e.g., 50000"
+                                 Min="1m" Max="10000000m"
+                                 For="@(() => model.MaxContractValue)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <input type="date" name="effectiveDate"> + rules: { required, date } -->
+                <MudDatePicker @bind-Date="model.EffectiveDate" Label="Effective Date *"
+                               Variant="Variant.Outlined" Placeholder="Select date"
+                               For="@(() => model.EffectiveDate)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <!-- Replaces: <select name="status"> + rules: { required } -->
+                <MudSelect @bind-Value="model.Status" Label="Status *"
+                           Variant="Variant.Outlined" Placeholder="-- Select Status --"
+                           For="@(() => model.Status)">
+                    <MudSelectItem Value="@((string?)null)">-- Select Status --</MudSelectItem>
+                    <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                    <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex gap-2 mt-2">
+                <!-- Replaces: <button type="submit"> + submitHandler callback -->
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Success" Disabled="@isSubmitting">
+                    @if (isSubmitting) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Add Payor
+                </MudButton>
+
+                <!-- Replaces: <button onclick="window.location.href=..."> -->
+                <MudButton Variant="Variant.Filled" Color="Color.Default"
+                           OnClick="@(() => Navigation.NavigateTo("/"))">
+                    Cancel
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>
+
+@code {
+    private AddPayorModel model = new();
+    private bool isSubmitting = false;
+    private bool showSuccess = false;
+
+    /// <summary>
+    /// Called when form passes all DataAnnotations validation.
+    /// Replaces: jQuery Validate submitHandler callback + $.ajax POST.
+    /// </summary>
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+
+        try
+        {
+            // Direct service call — replaces $.ajax to ASMX
+            // In real app: PayorService.AddPayor(model);
+            await Task.Delay(500); // Simulate network call
+
+            showSuccess = true;
+            model = new AddPayorModel(); // Reset form (replaces form.reset())
+        }
+        catch (Exception)
+        {
+            // Replaces: error callback in $.ajax
+            // Could show MudSnackbar here
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

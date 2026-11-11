@@ -1,0 +1,49 @@
+{
+  "page": "PayorList",
+  "revision": 2,
+  "modules": [
+    {
+      "id": "A",
+      "name": "Load the page and sort the grid",
+      "userStory": "As a user I open Payor List, check the first page and sort by Name",
+      "dataEffect": "read-only",
+      "plannedSteps": 2,
+      "referenceTest": "ReferencePayorList_ModA",
+      "targetTest": "PayorList_ModA",
+      "cssStates": ["page_load", "sorted"],
+      "steps": [
+        { "id": "Step1", "action": "Open /Pages/PayorList and read the first page", "changes": [], "staysSame": [], "checks": ["pager.range", "grid.rowCount"],
+          "checksText": ["The pager range text ('View x - y of z') shows the first page", "the grid shows one full page of rows"] },
+        { "id": "Step2", "action": "Click the Name header", "changes": ["grid.row1.name"], "staysSame": ["pager.range"], "checks": [],
+          "checksText": ["The first row becomes the first name in A to Z order.", "The pager range text stays the same."] }
+      ],
+      "notTested": [
+        { "item": "Sort-indicator glyph visibility", "reason": "Automation asserts sort state from DOM classes; glyph legibility is a visual check." }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Edit a cell and Save All",
+      "userStory": "",
+      "plannedSteps": 3,
+      "referenceTest": "ReferencePayorList_ModB",
+      "targetTest": "PayorList_ModB",
+      "cssStates": [],
+      "steps": [
+        { "id": "Step1", "action": "Edit Payor Name of row 1 to 'Acme Plus'", "changes": ["grid.row1.name"], "staysSame": ["pager.range"], "checks": [] },
+        { "id": "Step2", "action": "Click Save All", "changes": ["status.message"], "staysSame": [], "checks": ["grid.row1.name"] }
+      ],
+      "notTested": []
+    }
+  ],
+  "fieldLabels": {
+    "grid.rowCount": "Rows shown",
+    "pager.range": "Pager text",
+    "grid.row{n}.name": "Payor Name in grid row {n}",
+    "status.message": "Message"
+  },
+  "states": [
+    { "id": "S0", "name": "Initial grid", "howReached": "Open /Pages/PayorList", "indicators": ["grid visible", "pager \"View 1 - 10 of 15\"", "no sort indicator"] },
+    { "id": "S_sorted", "name": "Sorted by Name", "howReached": "S0 + click the Name header", "indicators": ["row 1 name \"Bluebird\"", "Name header shows ascending indicator"] }
+  ]
+}

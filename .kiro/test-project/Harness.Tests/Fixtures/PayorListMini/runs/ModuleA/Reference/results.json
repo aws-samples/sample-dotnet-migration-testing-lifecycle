@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "page": "PayorList",
+  "module": "A",
+  "system": "Reference",
+  "test": "ReferencePayorList_ModA",
+  "runId": "20261027-101900",
+  "startedAt": "2026-10-27T10:09:20.0000000+05:30",
+  "finishedAt": "2026-10-27T10:09:41.0000000+05:30",
+  "aborted": false,
+  "abortReason": null,
+  "cssMapMissing": false,
+  "totals": { "stepsPass": 3, "stepsFail": 0, "stepsNotTested": 0, "assertionsTotal": 4, "assertionsPassed": 4, "assertionsFailed": 0 },
+  "steps": [
+    { "step": "NAV", "status": "PASS", "description": "Opened reference PayorList.aspx (jqGrid) and data rows rendered.", "title": "Navigate", "actionMs": 4210, "stepMs": 4210, "assertions": [] },
+    {
+      "step": "Step1", "status": "PASS",
+      "description": "Open /Pages/PayorList and read the first page. VERIFIED: pager.range: \"View 1 - 10 of 15\" = expected; grid.rowCount: \"10\" = expected. [233ms]",
+      "title": "Open /Pages/PayorList and read the first page", "actionMs": 0, "stepMs": 233,
+      "assertions": [
+        { "field": "pager.range", "type": "EQUALS", "expected": "View 1 - 10 of 15", "expectedIsConstant": true, "actual": "View 1 - 10 of 15", "passed": true, "message": "pager.range: \"View 1 - 10 of 15\" = expected" },
+        { "field": "grid.rowCount", "type": "EQUALS", "expected": "10", "expectedIsConstant": true, "actual": "10", "passed": true, "message": "grid.rowCount: \"10\" = expected" }
+      ]
+    },
+    {
+      "step": "Step2", "status": "PASS",
+      "description": "Click the Name header. CHANGED: grid.row1.name: \"Acme\" -> \"Bluebird\" (CHANGED). UNCHANGED: pager.range: \"View 1 - 10 of 15\" (unchanged). [612ms]",
+      "title": "Click the Name header", "actionMs": 540, "stepMs": 612,
+      "assertions": [
+        { "field": "grid.row1.name", "type": "CHANGES", "expected": "Acme", "expectedIsConstant": false, "actual": "Bluebird", "passed": true, "message": "grid.row1.name: \"Acme\" -> \"Bluebird\" (CHANGED)" },
+        { "field": "pager.range", "type": "STAYS SAME", "expected": "View 1 - 10 of 15", "expectedIsConstant": false, "actual": "View 1 - 10 of 15", "passed": true, "message": "pager.range: \"View 1 - 10 of 15\" (unchanged)" }
+      ]
+    }
+  ],
+  "captures": [
+    { "step": "Step1", "state": "S0", "field": "pager.range", "value": "View 1 - 10 of 15" },
+    { "step": "Step1", "state": "S0", "field": "grid.rowCount", "value": "10" }
+  ],
+  "uncoveredHtmlDiffs": [],
+  "cssStatesCaptured": ["page_load", "sorted"]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 2,
+  "page": "PayorList",
+  "latest": {
+    "A": { "Reference": { "wallMs": 21000, "testOverheadMs": 8000 }, "Target": { "wallMs": 19000, "testOverheadMs": 7800 } },
+    "B": { "Reference": { "wallMs": 16000, "testOverheadMs": 7900 }, "Target": { "wallMs": 15000, "testOverheadMs": 7700 } }
+  },
+  "runs": [
+    {
+      "runId": "20261027-101900",
+      "action": "run-page",
+      "modules": ["A", "B"],
+      "startedAt": "2026-10-27T10:09:00.0000000+05:30",
+      "finishedAt": "2026-10-27T10:12:21.0000000+05:30",
+      "exitCode": 1,
+      "maxParallel": 4,
+      "preflightMs": 9200,
+      "buildMs": 41300,
+      "reportMs": 4100,
+      "tests": [
+        { "module": "A", "system": "Reference", "wallMs": 21000, "testOverheadMs": 8000, "batch": "read-only" },
+        { "module": "A", "system": "Target", "wallMs": 19000, "testOverheadMs": 7800, "batch": "read-only" },
+        { "module": "B", "system": "Reference", "wallMs": 16000, "testOverheadMs": 7900, "batch": "mutating" },
+        { "module": "B", "system": "Target", "wallMs": 15000, "testOverheadMs": 7700, "batch": "mutating" }
+      ],
+      "restarts": [
+        { "app": "service", "reason": "after Module B Reference", "ms": 14200, "at": "2026-10-27T10:10:35.0000000+05:30" },
+        { "app": "service", "reason": "after Module B Target", "ms": 13800, "at": "2026-10-27T10:11:10.0000000+05:30" }
+      ]
+    },
+    {
+      "runId": "20261027-101230",
+      "action": "rerun-target",
+      "modules": ["A"],
+      "startedAt": "2026-10-27T10:12:30.0000000+05:30",
+      "finishedAt": "2026-10-27T10:13:05.0000000+05:30",
+      "exitCode": 0,
+      "maxParallel": 2,
+      "preflightMs": 3000,
+      "buildMs": 5000,
+      "tests": [
+        { "module": "A", "system": "Target", "wallMs": 19500, "testOverheadMs": 7600, "batch": "read-only" }
+      ],
+      "restarts": []
+    }
+  ],
+  "lifecycles": [
+    {
+      "id": "20261027-100000",
+      "page": "PayorList",
+      "startedAt": "2026-10-27T10:00:00.0000000+05:30",
+      "finishedAt": "2026-10-27T10:14:00.0000000+05:30",
+      "totalBudgetMs": 900000,
+      "phases": [
+        { "id": 0, "name": "Plan", "budgetMs": 240000, "status": "done",
+          "segments": [ { "start": "2026-10-27T10:00:00.0000000+05:30", "end": "2026-10-27T10:02:00.0000000+05:30" },
+                        { "start": "2026-10-27T10:04:00.0000000+05:30", "end": "2026-10-27T10:05:00.0000000+05:30" } ],
+          "activeMs": 180000 },
+        { "id": 1, "name": "Author tests", "budgetMs": 240000, "status": "done",
+          "segments": [ { "start": "2026-10-27T10:06:00.0000000+05:30", "end": "2026-10-27T10:09:00.0000000+05:30" } ], "activeMs": 180000 },
+        { "id": 2, "name": "Run Reference + Target", "budgetMs": 240000, "status": "done",
+          "segments": [ { "start": "2026-10-27T10:09:00.0000000+05:30", "end": "2026-10-27T10:12:00.0000000+05:30" } ], "activeMs": 180000 },
+        { "id": 3, "name": "Fix", "budgetMs": 180000, "status": "done",
+          "segments": [ { "start": "2026-10-27T10:12:00.0000000+05:30", "end": "2026-10-27T10:13:00.0000000+05:30" } ], "activeMs": 60000 },
+        { "id": 4, "name": "Report", "budgetMs": 60000, "status": "done",
+          "segments": [ { "start": "2026-10-27T10:13:00.0000000+05:30", "end": "2026-10-27T10:13:30.0000000+05:30" } ], "activeMs": 30000 }
+      ],
+      "gates": [
+        { "name": "plan_signoff", "pendingAt": "2026-10-27T10:02:00.0000000+05:30", "confirmedAt": "2026-10-27T10:03:00.0000000+05:30", "waitMs": 60000 },
+        { "name": "plan_signoff", "pendingAt": "2026-10-27T10:05:00.0000000+05:30", "confirmedAt": "2026-10-27T10:06:00.0000000+05:30", "waitMs": 60000 },
+        { "name": "final_signoff", "pendingAt": "2026-10-27T10:13:30.0000000+05:30", "confirmedAt": null, "waitMs": 0 }
+      ],
+      "postGate": []
+    }
+  ]
+}

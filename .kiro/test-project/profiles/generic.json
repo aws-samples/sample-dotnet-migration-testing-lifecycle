@@ -1,0 +1,28 @@
+{
+  "_comment": "Base stack profile, applied to every app pair (always the last link of an 'extends' chain). Keep it stack-neutral: only differences that have no visual effect in any browser/framework pair. Fields: roleEquivalences (groups of accessibility roles that are the same thing on both sides), selectorHints (widget part -> selector hints per side, documentation for the planner), accepted (property exact or 'prefix*', optional role / element substring / reference + target value regexes, reason shown in the report as 'accepted by profile <name>: <reason>'), ignoreProperties (never compared by the automatic comparison), ignoreRoles (excluded from the inventory matching). See docs/RUN-TESTING-LIFECYCLE.md 'Adding a stack profile'.",
+  "name": "generic",
+  "description": "Stack-neutral equivalences for any web app to web app migration.",
+  "roleEquivalences": [
+    ["cell", "gridcell"],
+    ["columnheader", "rowheader"],
+    ["status", "alert"],
+    ["textbox", "searchbox"]
+  ],
+  "selectorHints": {},
+  "accepted": [
+    {
+      "property": "text-align",
+      "reference": "^(start|left)$",
+      "target": "^(start|left)$",
+      "reason": "'start' renders as 'left' on a left-to-right page"
+    },
+    {
+      "property": "text-transform",
+      "reference": "^(none)?$",
+      "target": "^(none)?$",
+      "reason": "empty and 'none' are the same computed value"
+    }
+  ],
+  "ignoreProperties": [],
+  "ignoreRoles": ["presentation", "none"]
+}

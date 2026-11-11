@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "module": "B",
+  "project": "Modules/PayorList.ModB/PayorList.ModB.csproj",
+  "result": "PASS",
+  "ms": 9420,
+  "at": "2026-10-27T10:07:10.0000000+05:30",
+  "log": "logs/build-B.log",
+  "errors": [],
+  "attempts": 1,
+  "reference": { "file": "Modules/PayorList.ModB/ReferencePayorListModuleB_v2.cs", "test": "ReferencePayorList_ModB", "exists": true, "methodFound": true, "revision": 1, "steps": 2, "assertionCalls": 3, "lastWrite": "2026-10-27T09:30:00.0000000+05:30" },
+  "target": { "file": "Modules/PayorList.ModB/PayorListModuleB_v2.cs", "test": "PayorList_ModB", "exists": true, "methodFound": true, "revision": 1, "steps": 2, "assertionCalls": 3, "lastWrite": "2026-10-27T09:31:00.0000000+05:30" }
+}
